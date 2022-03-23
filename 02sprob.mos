@@ -1,0 +1,71 @@
+!@encoding CP1252
+model "lab1"
+uses "mmxprs"; !gain access to the Xpress-Optimizer solver
+
+!optional parameters section
+parameters
+!  SAMPLEPARAM1='c:\test\'
+!  SAMPLEPARAM2=false
+   PROJECTDIR='' ! for when file is added to project
+end-parameters
+
+!sample declarations section
+declarations
+! ...
+  Objective:linctr
+  
+  Set1 = 1..16
+  Set2 = 1..16
+  Prob = 0.6
+  Instances =1..6
+  
+  Xij : array(Set1,Set2) of mpvar
+  
+  Wij:array(Set1,Set2) of real
+  
+  Pij:array(Set1,Set1) of integer
+  
+end-declarations
+
+if PROJECTDIR <> '' then
+  setparam('workdir', PROJECTDIR)
+  writeln("Project directory: " + PROJECTDIR)
+end-if
+
+writeln("Begin running model")
+!...
+
+setrandseed(4)
+
+
+forall(ins in Instances)
+do
+
+	forall(i in Set1, j in Set2)
+	do
+		if random<Prob then
+			Pij(i,j):=1
+			Wij(i,j):=random*10
+		end-if
+	end-do
+	
+	!Wij::{[3,5,0,0],[2,0,0,4],[0,0,0,0],[0,0,0,0]}
+	!writeln("Wij: ", Wij)
+	!writeln("Pij: ", Pij)
+	
+	
+	TotalWeight:=sum(i in Set1,j in Set1) Wij(i,j)*Xij(i,j)
+	forall(i in Set1) sum(j in Set2) Xij(i,j)<=1
+	forall(j in Set2) sum(i in Set1) Xij(i,j)<=1
+	forall(i in Set1, j in Set2) Xij(i,j)<=Pij(i,j)
+	maximize(TotalWeight)
+	writeln("Max TotalWeight; ",getobjval)
+	
+	TotalCardinality:=sum(i in Set1,j in Set1) Xij(i,j)
+	maximize(TotalCardinality)
+	writeln("Max TotalCardinality; ",getobjval)
+
+end-do
+writeln("End running model")
+
+end-model
