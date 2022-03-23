@@ -58,7 +58,7 @@ TotalWeight:=sum(i in Set1,j in Set1) Wij(i,j)*Xij(i,j)
 
 forall(i in Set1) sum(j in Set2) Xij(i,j)<=1
 forall(j in Set2) sum(i in Set1) Xij(i,j)<=1
-
+forall(i in Set1, j in Set2) Xij(i,j)<=Pij(i,j)
 
 maximize(TotalWeight)
 
