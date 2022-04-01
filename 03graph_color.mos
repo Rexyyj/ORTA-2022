@@ -1,0 +1,87 @@
+!@encoding CP1252
+model ModelName
+uses "mmxprs"; !gain access to the Xpress-Optimizer solver
+
+!optional parameters section
+parameters
+!  SAMPLEPARAM1='c:\test\'
+!  SAMPLEPARAM2=false
+   PROJECTDIR='' ! for when file is added to project
+end-parameters
+
+!sample declarations section
+declarations
+! ...
+  Objective:linctr
+  
+  N=40
+  Prob = 0.1
+  
+  Node = 1..N
+  Color = 1..N
+
+  
+  
+  Yc : array(Color) of mpvar
+  Xic : array(Node,Node) of mpvar
+  Pij:array(Node,Node) of integer
+  
+
+  
+end-declarations
+
+if PROJECTDIR <> '' then
+  setparam('workdir', PROJECTDIR)
+  writeln("Project directory: " + PROJECTDIR)
+end-if
+
+writeln("Begin running model")
+!...
+
+
+
+
+forall(i in Node)
+do
+	forall(j in 1..i)
+	if random<Prob then
+		Pij(i,j):=1
+		Pij(j,i):=1
+	end-if
+end-do
+
+forall(i in Node)
+do 
+	write("[")
+	forall (j in Node)
+	do 
+		write(Pij(i,j))
+	end-do
+	writeln("]")
+end-do
+
+
+
+
+TotalColor:=sum(c in Color) Yc(c)
+
+forall(c in Color) Yc(c)*N - sum(i in Node)Xic(i,c)>=  0
+forall(i in Node, j in Node, c in Color) (Xic(i,c)+Xic(j,c))*Pij(i,j)<=1
+forall(i in Node) sum(c in Color) Xic(i,c)>=1
+
+forall(i in Node,c in Color) Xic(i,c) is_binary
+forall(c in Color) Yc(c) is_binary
+minimize(TotalColor)
+writeln("Minimal Color number; ",getobjval)
+
+
+
+
+
+
+
+
+
+writeln("End running model")
+
+end-model
