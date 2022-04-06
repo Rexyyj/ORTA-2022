@@ -14,8 +14,8 @@ declarations
 ! ...
   Objective:linctr
   
-  N=40
-  Prob = 0.1
+  N=10
+  Prob = 0.6
   
   Node = 1..N
   Color = 1..N
@@ -23,8 +23,8 @@ declarations
   
   
   Yc : array(Color) of mpvar
-  Xic : array(Node,Node) of mpvar
-  Pij:array(Node,Node) of integer
+  Xic : array(Node,Color) of mpvar
+  Pij:array(Node,Color) of integer
   
 
   
@@ -43,7 +43,7 @@ writeln("Begin running model")
 
 forall(i in Node)
 do
-	forall(j in 1..i)
+	forall(j in 1..i-1)
 	if random<Prob then
 		Pij(i,j):=1
 		Pij(j,i):=1
@@ -65,17 +65,29 @@ end-do
 
 TotalColor:=sum(c in Color) Yc(c)
 
-forall(c in Color) Yc(c)*N - sum(i in Node)Xic(i,c)>=  0
-forall(i in Node, j in Node, c in Color) (Xic(i,c)+Xic(j,c))*Pij(i,j)<=1
-forall(i in Node) sum(c in Color) Xic(i,c)>=1
-
 forall(i in Node,c in Color) Xic(i,c) is_binary
 forall(c in Color) Yc(c) is_binary
+forall(c in Color) Yc(c)*N - sum(i in Node)Xic(i,c) >=0
+forall(i in Node, j in Node, c in Color | i<>j) (Xic(i,c)+Xic(j,c))*Pij(i,j)<=1
+forall(i in Node) sum(c in Color) Xic(i,c)=1
 minimize(TotalColor)
 writeln("Minimal Color number; ",getobjval)
 
 
 
+!TOTALCOLORS := sum(c in Color) Yc(c)
+!Constraints
+!forall(i in Node, j in Node, c in Color) Pij(i,j)*(Xic(i,c)+ Xic(j,c)) <= 1
+!forall(i in Node) sum(c in Color) Xic(i,c) >= 1
+!forall(c in Color) Yc(c)*N - sum(i in Node) Xic(i,c) >= 0
+
+!forall(i in Node,c in Color) Xic(i,c) is_binary
+!forall(c in Color) Yc(c) is_binary
+!forall(i in Nodes, j in Nodes) x(i,j) is_binary
+!forall(c in Colors) y(c) is_binary
+
+!minimize(TOTALCOLORS)
+!writeln("Minimal Color number; ",getobjval)
 
 
 
